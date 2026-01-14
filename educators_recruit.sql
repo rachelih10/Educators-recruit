@@ -1,23 +1,20 @@
 -- Educators Recruit - Business Scenario Implementation (T-SQL)
 
-IF OBJECT_ID('dbo.Educators', 'U') IS NOT NULL
-    DROP TABLE dbo.Educators;
-IF OBJECT_ID('dbo.Schools', 'U') IS NOT NULL
-    DROP TABLE dbo.Schools;
-IF OBJECT_ID('dbo.MediaSources', 'U') IS NOT NULL
-    DROP TABLE dbo.MediaSources;
+DROP TABLE IF EXISTS dbo.Educator;
+DROP TABLE IF EXISTS dbo.School;
+DROP TABLE IF EXISTS dbo.MediaSource;
 
-CREATE TABLE dbo.MediaSources (
+CREATE TABLE dbo.MediaSource (
     MediaSourceID INT IDENTITY(1,1) PRIMARY KEY,
     MediaSourceName NVARCHAR(100) NOT NULL UNIQUE
 );
 
-CREATE TABLE dbo.Schools (
+CREATE TABLE dbo.School (
     SchoolID INT IDENTITY(1,1) PRIMARY KEY,
     SchoolName NVARCHAR(200) NOT NULL UNIQUE
 );
 
-CREATE TABLE dbo.Educators (
+CREATE TABLE dbo.Educator (
     EducatorID INT IDENTITY(1,1) PRIMARY KEY,
     FirstName NVARCHAR(100) NOT NULL,
     LastName NVARCHAR(100) NOT NULL,
@@ -29,25 +26,25 @@ CREATE TABLE dbo.Educators (
     DateContacted DATE NOT NULL,
     SchoolPlacedID INT NULL,
     DateFoundJob DATE NULL,
-    CONSTRAINT FK_Educators_MediaSources FOREIGN KEY (MediaSourceID) REFERENCES dbo.MediaSources (MediaSourceID),
-    CONSTRAINT FK_Educators_Schools FOREIGN KEY (SchoolPlacedID) REFERENCES dbo.Schools (SchoolID),
-    CONSTRAINT CK_Educators_DateFoundJob CHECK (DateFoundJob IS NULL OR DateFoundJob >= DateContacted)
+    CONSTRAINT FK_Educator_MediaSource FOREIGN KEY (MediaSourceID) REFERENCES dbo.MediaSource (MediaSourceID),
+    CONSTRAINT FK_Educator_School FOREIGN KEY (SchoolPlacedID) REFERENCES dbo.School (SchoolID),
+    CONSTRAINT CK_Educator_DateFoundJob CHECK (DateFoundJob IS NULL OR DateFoundJob >= DateContacted)
 );
 
-INSERT INTO dbo.MediaSources (MediaSourceName)
+INSERT INTO dbo.MediaSource (MediaSourceName)
 VALUES
     ('magazine'),
     ('newspaper'),
     ('social media'),
     ('word of mouth');
 
-INSERT INTO dbo.Schools (SchoolName)
+INSERT INTO dbo.School (SchoolName)
 VALUES
     ('Brooklyn High School'),
     ('Manhattan Elementary School'),
     ('New York City Day School');
 
-INSERT INTO dbo.Educators (
+INSERT INTO dbo.Educator (
     FirstName,
     LastName,
     DateOfBirth,
@@ -67,9 +64,9 @@ VALUES
         'female',
         'Excelsior College',
         'BA in Mathematics Education',
-        (SELECT MediaSourceID FROM dbo.MediaSources WHERE MediaSourceName = 'magazine'),
+        (SELECT MediaSourceID FROM dbo.MediaSource WHERE MediaSourceName = 'magazine'),
         '2022-05-02',
-        (SELECT SchoolID FROM dbo.Schools WHERE SchoolName = 'Brooklyn High School'),
+        (SELECT SchoolID FROM dbo.School WHERE SchoolName = 'Brooklyn High School'),
         '2022-05-09'
     ),
     (
@@ -79,9 +76,9 @@ VALUES
         'male',
         'Georgia State University',
         'MA in Social Studies Education',
-        (SELECT MediaSourceID FROM dbo.MediaSources WHERE MediaSourceName = 'social media'),
+        (SELECT MediaSourceID FROM dbo.MediaSource WHERE MediaSourceName = 'social media'),
         '2022-02-12',
-        (SELECT SchoolID FROM dbo.Schools WHERE SchoolName = 'Manhattan Elementary School'),
+        (SELECT SchoolID FROM dbo.School WHERE SchoolName = 'Manhattan Elementary School'),
         '2022-05-09'
     ),
     (
@@ -91,9 +88,9 @@ VALUES
         'male',
         'Excelsior College',
         'PhD in Education',
-        (SELECT MediaSourceID FROM dbo.MediaSources WHERE MediaSourceName = 'social media'),
+        (SELECT MediaSourceID FROM dbo.MediaSource WHERE MediaSourceName = 'social media'),
         '2021-08-07',
-        (SELECT SchoolID FROM dbo.Schools WHERE SchoolName = 'New York City Day School'),
+        (SELECT SchoolID FROM dbo.School WHERE SchoolName = 'New York City Day School'),
         '2021-08-12'
     ),
     (
@@ -103,9 +100,9 @@ VALUES
         'female',
         'Columbia University',
         'BA in English Education',
-        (SELECT MediaSourceID FROM dbo.MediaSources WHERE MediaSourceName = 'newspaper'),
+        (SELECT MediaSourceID FROM dbo.MediaSource WHERE MediaSourceName = 'newspaper'),
         '2021-05-23',
-        (SELECT SchoolID FROM dbo.Schools WHERE SchoolName = 'Brooklyn High School'),
+        (SELECT SchoolID FROM dbo.School WHERE SchoolName = 'Brooklyn High School'),
         '2021-07-30'
     ),
     (
@@ -115,7 +112,7 @@ VALUES
         'male',
         'Georgia State University',
         'MA in History Education',
-        (SELECT MediaSourceID FROM dbo.MediaSources WHERE MediaSourceName = 'word of mouth'),
+        (SELECT MediaSourceID FROM dbo.MediaSource WHERE MediaSourceName = 'word of mouth'),
         '2022-01-31',
         NULL,
         NULL
@@ -127,9 +124,9 @@ VALUES
         'female',
         'Columbia University',
         'MA in Science Education',
-        (SELECT MediaSourceID FROM dbo.MediaSources WHERE MediaSourceName = 'social media'),
+        (SELECT MediaSourceID FROM dbo.MediaSource WHERE MediaSourceName = 'social media'),
         '2020-05-23',
-        (SELECT SchoolID FROM dbo.Schools WHERE SchoolName = 'New York City Day School'),
+        (SELECT SchoolID FROM dbo.School WHERE SchoolName = 'New York City Day School'),
         '2020-08-17'
     ),
     (
@@ -139,7 +136,7 @@ VALUES
         'female',
         'Excelsior College',
         'BA in English Education',
-        (SELECT MediaSourceID FROM dbo.MediaSources WHERE MediaSourceName = 'word of mouth'),
+        (SELECT MediaSourceID FROM dbo.MediaSource WHERE MediaSourceName = 'word of mouth'),
         '2022-04-01',
         NULL,
         NULL
@@ -151,9 +148,9 @@ VALUES
         NULL,
         'University of Denver',
         'MA in Social Studies Education',
-        (SELECT MediaSourceID FROM dbo.MediaSources WHERE MediaSourceName = 'social media'),
+        (SELECT MediaSourceID FROM dbo.MediaSource WHERE MediaSourceName = 'social media'),
         '2020-07-14',
-        (SELECT SchoolID FROM dbo.Schools WHERE SchoolName = 'Manhattan Elementary School'),
+        (SELECT SchoolID FROM dbo.School WHERE SchoolName = 'Manhattan Elementary School'),
         '2020-08-17'
     );
 
@@ -161,7 +158,7 @@ VALUES
 SELECT
     e.CollegeAttended,
     COUNT(*) AS PlacedUnderTwoWeeks
-FROM dbo.Educators AS e
+FROM dbo.Educator AS e
 WHERE
     e.DateFoundJob IS NOT NULL
     AND DATEDIFF(DAY, e.DateContacted, e.DateFoundJob) <= 14
@@ -172,7 +169,7 @@ ORDER BY PlacedUnderTwoWeeks DESC;
 SELECT
     e.Gender,
     COUNT(*) AS Placements
-FROM dbo.Educators AS e
+FROM dbo.Educator AS e
 WHERE e.DateFoundJob IS NOT NULL
 GROUP BY e.Gender
 ORDER BY Placements DESC;
@@ -180,13 +177,13 @@ ORDER BY Placements DESC;
 -- Report 3: Average contacts per day and counts per media source
 SELECT
     CAST(COUNT(*) AS DECIMAL(10,2)) / NULLIF(COUNT(DISTINCT e.DateContacted), 0) AS AvgContactsPerDay
-FROM dbo.Educators AS e;
+FROM dbo.Educator AS e;
 
 SELECT
     m.MediaSourceName,
     COUNT(*) AS Contacts
-FROM dbo.Educators AS e
-INNER JOIN dbo.MediaSources AS m
+FROM dbo.Educator AS e
+INNER JOIN dbo.MediaSource AS m
     ON e.MediaSourceID = m.MediaSourceID
 GROUP BY m.MediaSourceName
 ORDER BY Contacts DESC;
@@ -194,7 +191,7 @@ ORDER BY Contacts DESC;
 -- Report 4: Average placements per day
 SELECT
     CAST(COUNT(*) AS DECIMAL(10,2)) / NULLIF(COUNT(DISTINCT e.DateFoundJob), 0) AS AvgPlacementsPerDay
-FROM dbo.Educators AS e
+FROM dbo.Educator AS e
 WHERE e.DateFoundJob IS NOT NULL;
 
 -- Report 5: Placements per day by degree level
@@ -207,7 +204,7 @@ SELECT
         ELSE 'Other'
     END AS DegreeLevel,
     COUNT(*) AS Placements
-FROM dbo.Educators AS e
+FROM dbo.Educator AS e
 WHERE e.DateFoundJob IS NOT NULL
 GROUP BY
     e.DateFoundJob,
@@ -230,5 +227,5 @@ SELECT
                 ELSE 0
           END AS Age,
     e.DegreeTitle
-FROM dbo.Educators AS e
+FROM dbo.Educator AS e
 ORDER BY e.LastName, e.FirstName;
